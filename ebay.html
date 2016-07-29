@@ -1,0 +1,646 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HW8</title>
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap.min.css">
+<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/css/bootstrap-theme.min.css">
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.2/jquery.min.js"></script>
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script> 
+<script src="js/jqBootstrapValidation.js"></script>
+<style type="text/css"> 
+@media only screen 
+  and (max-device-width: 800px)  { 
+.modal-dialog {
+width: 100%;
+height: 100%;
+padding: 0;
+margin:0;
+}
+.modal-content {   
+height: 100%;
+border-radius: 0;
+color:white;
+overflow:auto;
+}
+}
+@media only screen 
+  and (max-device-width: 1024px)  { 
+.modal-dialog {
+width: 100%;
+height: 100%;
+padding: 0;
+margin:0;
+}
+.modal-content {   
+height: 100%;
+border-radius: 0;
+color:white;
+overflow:auto;
+}
+}
+@media only screen 
+  and (max-device-width: 1280px)  { 
+.modal-dialog {
+width: 100%;
+height: 100%;
+padding: 0;
+margin:0;
+}
+.modal-content {   
+height: 100%;
+border-radius: 0;
+color:white;
+overflow:auto;
+}
+}
+</style>
+<script type="text/javascript">
+var keywords_fill=false;
+var pricerangefrom_fill=true;
+var pricerangeto_fill=true;
+var MaxHandlingTime_fill=true;
+var keyword_val="";
+var resultperpage_val="5";
+var sortby_val="BestMatch";
+var from_val="";
+var tofield_val="";
+var condition_val=[];
+var buyingformat_val=[];
+var returnaccepted_val="";
+var FreeShippingOnly_val="";
+var ExpeditedShippingType_val="";
+var MaxHandlingTime_val="";
+var pagenumber_val="";
+var chk_filter={};
+var values={};
+var resultCount="";
+var pageNumber="";
+var itemCount="";
+var minValue= "";
+var maxValue="";
+function clear_form_elements(ele) {
+		    tags = ele.getElementsByTagName('input');
+		    document.getElementById("searchDiv").style.visibility ="hidden";
+		    document.getElementById("searchResult").style.visibility ="hidden";
+		    document.getElementById("paginationBlock").style.visibility ="hidden";
+		    for(i = 0; i < tags.length; i++) {
+		        switch(tags[i].type) {
+		            case 'text':
+		                tags[i].value = '';
+		                tags[i].style.border='';
+		                break;
+		            case 'checkbox':
+		                tags[i].checked = false;
+		                break;
+		        }
+		    }
+		   
+		    tags = ele.getElementsByTagName('select');
+		    for(i = 0; i < tags.length; i++) {
+		        if(tags[i].type == 'select-one') {
+		            tags[i].selectedIndex = 0;
+		        }
+		        else {
+		            for(j = 0; j < tags[i].options.length; j++) {
+		                tags[i].options[j].selected = false;
+		            }
+		        }
+		    }
+		    tags = ele.getElementsByTagName('p');
+		    for(i = 0; i < tags.length; i++) {
+		      tags[i].style.visibility ="hidden";
+		      tags[i].innerHTML ='';
+		    }
+		}
+$(document).ready(function() {
+$("#keywords").keyup( function() {
+if($.trim($(this).val()) == ''){
+$(this).css({ "border": "1px solid #C80000"});
+$("#errorkeyword").text("Please enter a key word");
+$("#errorkeyword").css('visibility', 'visible');
+}
+else{
+$(this).css({ "border": ""});
+$("#errorkeyword").css('visibility', 'hidden');
+$("#errorkeyword").empty();
+}
+});
+$("#pricerangefrom").focusout( function() {
+if(isNaN($.trim($(this).val())) || ($.trim($(this).val())<0)){
+$(this).css({ "border": "1px solid #C80000"});
+if(isNaN($.trim($(this).val()))){$("#errorpricerangefrom").text("Price should be a valid number");}
+if(($.trim($(this).val())<0)){$("#errorpricerangefrom").text("Minimum price cannot be below 0");}
+$("#errorpricerangefrom").css('visibility', 'visible');
+pricerangefrom_fill=false;
+}
+else{
+$(this).css({ "border": ""});
+$("#errorpricerangefrom").css('visibility', 'hidden'); 
+$("#errorpricerangefrom").empty();
+pricerangefrom_fill=true
+}
+}); 
+$("#pricerangeto").focusout( function() {
+if(isNaN($.trim($(this).val())) || ($.trim($(this).val())<0)){
+$(this).css({ "border": "1px solid #C80000"});
+if(isNaN($.trim($(this).val()))){$("#errorpricerangeto").text("Price should be a valid number");}
+if(($.trim($(this).val())<0)){$("#errorpricerangeto").text("Minimum price cannot be below 0");}
+$("#errorpricerangeto").css('visibility', 'visible');
+pricerangeto_fill=false;
+}
+else if((parseFloat($.trim($("#pricerangefrom").val()))>0) && (parseFloat($.trim($(this).val()))>0) && (parseFloat($.trim($(this).val()))) < (parseFloat($.trim($("#pricerangefrom").val())))){
+$(this).css({ "border": "1px solid #C80000"});
+$("#errorpricerangeto").text("Maximum price cannot be less than minimum price");
+$("#errorpricerangeto").css('visibility', 'visible');
+pricerangeto_fill=false;
+}
+else{
+$(this).css({ "border": ""});
+$("#errorpricerangeto").css('visibility', 'hidden'); 
+$("#errorpricerangeto").empty();
+pricerangeto_fill=true;
+}
+});  
+$("#MaxHandlingTime").focusout( function() {
+if($.trim($(this).val()) != ""){
+if(Math.floor($.trim($(this).val())) == $.trim($(this).val()) && $.isNumeric($.trim($(this).val()))){
+if($.trim($(this).val()) < 1) {
+$(this).css({ "border": "1px solid #C80000"});
+$("#errormaxhandlingtime").text("Max handling time should be greater than or equal to 1");
+$("#errormaxhandlingtime").css('visibility', 'visible');
+MaxHandlingTime_fill=false;
+}
+else {
+$(this).css({ "border": ""});
+$("#errormaxhandlingtime").css('visibility', 'hidden'); 
+$("#errormaxhandlingtime").empty();
+MaxHandlingTime_fill=true;
+}
+}
+else{
+$(this).css({ "border": "1px solid #C80000"});
+$("#errormaxhandlingtime").text("Max handling time should be a valid digit");
+$("#errormaxhandlingtime").css('visibility', 'visible');
+MaxHandlingTime_fill=false;
+}
+}
+else{
+$(this).css({ "border": ""});
+$("#errormaxhandlingtime").css('visibility', 'hidden'); 
+$("#errormaxhandlingtime").empty();
+MaxHandlingTime_fill=true;
+}
+});
+$("#search").click(function(){
+ keywords_fill=false;
+ pricerangefrom_fill=true;
+ pricerangeto_fill=true;
+ MaxHandlingTime_fill=true;
+ keyword_val="";
+ resultperpage_val="5";
+ sortby_val="BestMatch";
+ from_val="";
+ tofield_val="";
+ condition_val=[];
+ buyingformat_val=[];
+ returnaccepted_val="";
+ FreeShippingOnly_val="";
+ ExpeditedShippingType_val="";
+ MaxHandlingTime_val="";
+ pagenumber_val="";
+ chk_filter={};
+ values={};
+ resultCount="";
+ pageNumber="";
+ itemCount="";
+ minValue= "";
+ maxValue="";
+ajax_call("1","normal");
+});
+});
+function ajax_call(page_number,type){
+resultperpage_val = $.trim($("#resultperpage").val())
+sortby_val = $.trim($("#sortby").val())
+from_val = $.trim($("#pricerangefrom").val())
+tofield_val = $.trim($("#pricerangeto").val())
+$("#condition input:checked").each(function() {
+		condition_val.push($(this).val());
+	});
+$("#buyingformat input:checked").each(function() {
+		buyingformat_val.push($(this).val());
+	});
+if ($("#returnaccepted").is(':checked')) {
+chk_filter["returnaccepted"]="true";
+}
+if ($("#FreeShippingOnly").is(':checked')) {
+chk_filter["FreeShippingOnly"]="true";
+}
+if ($("#ExpeditedShippingType").is(':checked')) {
+chk_filter["ExpeditedShippingType"]="Expedited";
+}
+MaxHandlingTime_val = $.trim($("#MaxHandlingTime").val())
+$('input[id="keywords"]').each(function() {
+if($.trim($(this).val()) == ''){
+$(this).css({ "border": "1px solid #C80000"});
+$("#errorkeyword").text("Please enter a key word");
+$("#errorkeyword").css('visibility', 'visible');
+keywords_fill=false;
+ }
+else{
+$(this).css({"border": ""});
+$("#errorkeyword").css('visibility', 'hidden');
+$("#errorkeyword").empty();
+keywords_fill=true;
+keyword_val=$("#keywords").val();
+}
+});
+if(keywords_fill && pricerangefrom_fill && pricerangeto_fill && MaxHandlingTime_fill) {
+	
+values={keywords:keyword_val,resultperpage:resultperpage_val,sortby:sortby_val,from:from_val,tofield:tofield_val,condition:condition_val,buyingformat:buyingformat_val,MaxHandlingTime:MaxHandlingTime_val};
+if(chk_filter!=""){
+$.extend( true, values, chk_filter );
+}
+var page_filter={};
+page_filter["pagenumber"]=page_number;
+$.extend( true, values, page_filter );
+	
+}
+$.ajax({url:"ebay.php",
+data:values,
+type:"GET",
+success: function(data) {  
+parse_result(data,type);},
+//alert(data);
+error: function(e, ts, et) {
+//alert("in error");  
+alert(e) }
+});	
+}
+function parse_result(data,type){
+try{
+var jsonres=JSON.parse(data);
+}
+catch(e){
+//alert(e);
+}
+var checkResult=jsonres.ack;
+if(checkResult=="No results found")
+{
+$("#searchDiv").css('visibility', 'visible');
+$("#searchResult").css('visibility', 'hidden');
+$("#paginationBlock").css('visibility', 'hidden');
+var resultHeading='<h3><b>No results found</b></h3>';
+$("#searchHeading").html(resultHeading);
+}
+else if(checkResult=="Success")
+{
+$("#searchDiv").css('visibility', 'visible');
+$("#searchResult").css('visibility', 'visible');
+$("#paginationBlock").css('visibility', 'visible');
+var resultCount=parseInt(jsonres.resultCount);
+var pageNumber=parseInt(jsonres.pageNumber);
+var itemCount=parseInt(jsonres.itemCount);
+var minValue= ((pageNumber-1) * itemCount) + 1;
+var maxValue=(pageNumber * itemCount);
+var itemsDone = (pageNumber-1) * itemCount;
+var leftItems = resultCount - itemsDone;
+if(leftItems <= itemCount){
+maxValue=itemsDone+leftItems;
+}
+var resultHeading='<h3><b>'+minValue+' - '+maxValue+' items out of '+resultCount+'</b></h3>';
+$("#searchHeading").html(resultHeading);
+var html = "",
+    div = $('<div class="media"></div>');
+var counter=0;
+$.each(jsonres, function(key, value) {
+if((key.indexOf("item") >= 0) && (key != "itemCount")){
+counter=counter+1;
+var galleryURL=value.basicInfo.galleryURL;
+var pictureURLSuperSize=value.basicInfo.pictureURLSuperSize;
+var title=value.basicInfo.title;
+var title_rem = title.replace("'"," ");
+var title_rem = title_rem.replace('"','');
+var viewItemURL=value.basicInfo.viewItemURL;
+var currentPrice=value.basicInfo.convertedCurrentPrice;
+var shippingPrice=value.basicInfo.shippingServiceCost;
+if(shippingPrice>0 && shippingPrice !=""){
+shippingPrice="+ $" + shippingPrice;
+}
+else{
+shippingPrice="(Free Shipping)";
+}
+var location=value.basicInfo.location;
+var topRatedListing=value.basicInfo.topRatedListing;
+if(topRatedListing=="true"){
+topRatedListing='<img src="http://cs-server.usc.edu:45678/hw/hw8/itemTopRated.jpg" style="height: 40px">';
+}
+else{
+topRatedListing='<span></span>';
+}
+var categoryName=value.basicInfo.categoryName;
+var conditionDisplayName=value.basicInfo.conditionDisplayName;
+var listingType=value.basicInfo.listingType;
+var sellerUserName=value.sellerInfo.sellerUserName;
+var feedbackScore=value.sellerInfo.feedbackScore;
+var positiveFeedbackPercent=value.sellerInfo.positiveFeedbackPercent;
+var feedbackRatingStar=value.sellerInfo.feedbackRatingStar;
+var topRatedSeller=value.sellerInfo.topRatedSeller;
+if(topRatedSeller=="true")
+{
+topRatedSeller='<span class="glyphicon glyphicon-ok" style="color:#00CC00"></span>';
+}
+else{
+topRatedSeller='<span class="glyphicon glyphicon-remove" style="color:#FF0000"></span>';
+}
+var sellerStoreName=value.sellerInfo.sellerStoreName;
+var sellerStoreURL=value.sellerInfo.sellerStoreURL;
+var shippingType=value.shippingInfo.shippingType;
+var newStr = $.trim(shippingType);
+if(newStr=="FlatDomesticCalculatedInternational")
+{
+shippingType="Flat Domestic Calculated International"	
+}
+var handlingTime=value.shippingInfo.handlingTime;
+var shipToLocations=value.shippingInfo.shipToLocations;
+var expeditedShipping=value.shippingInfo.expeditedShipping;
+if(expeditedShipping=="true")
+{
+expeditedShipping='<span class="glyphicon glyphicon-ok" style="color:#00CC00"></span>';
+}
+else{
+expeditedShipping='<span class="glyphicon glyphicon-remove" style="color:#FF0000"></span>';
+}
+var oneDayShippingAvailable=value.shippingInfo.oneDayShippingAvailable;
+if(oneDayShippingAvailable=="true")
+{
+oneDayShippingAvailable='<span class="glyphicon glyphicon-ok" style="color:#00CC00"></span>';
+}
+else{
+oneDayShippingAvailable='<span class="glyphicon glyphicon-remove" style="color:#FF0000"></span>';
+}
+var returnsAccepted=value.shippingInfo.returnsAccepted;
+if(returnsAccepted=="true")
+{
+returnsAccepted='<span class="glyphicon glyphicon-ok" style="color:#00CC00"></span>';
+}
+else{
+returnsAccepted='<span class="glyphicon glyphicon-remove" style="color:#FF0000"></span>';
+}
+var collapseid="collapseid" + counter.toString();
+var sectionAid="sectionAid" + counter.toString();
+var sectionBid="sectionBid" + counter.toString();
+var sectionCid="sectionCid" + counter.toString();
+var imageModalid="imageModal" + counter.toString();
+html += '<div class="media"><a href="#" class="pull-left" data-toggle="modal" data-target="#'+imageModalid+'"><img class="media-object" src='+galleryURL+' alt="Media Object" width="70" height="70"></a><div class="modal fade" id="'+imageModalid+'" tabindex="-1" role="dialog" aria-labelledby="basicModal" aria-hidden="true"><div class="modal-dialog modal-lg"><div class="modal-content" ><div class="modal-header"><button type="button" class="close" data-dismiss="modal" aria-hidden="true"><span class="glyphicon glyphicon-remove" ></span></button><h4 class="modal-title" id="myModalLabel"><span>'+title+'</span></h4><div class="modal-body"><img class="img-responsive center-block" src='+pictureURLSuperSize+' alt="responsive"></div></div></div></div></div><div class="media-body"><h4 class="media-heading"><a href='+viewItemURL+'>'+title+'</a></h4><span><b>Price:$'+currentPrice+'</b> '+shippingPrice+'</span><span><i>&nbsp; Location:'+location+'&nbsp;</i></span><span>&nbsp;'+topRatedListing+'</span><span>&nbsp; <a data-toggle="collapse" data-parent="#accordion" href="#'+collapseid+'">View Details</a></span><span>&nbsp; <a href="javascript:fb_post(\''+title_rem+'\',\''+viewItemURL+'\',\''+currentPrice+'\',\''+shippingPrice+'\',\''+location+'\',\''+galleryURL+'\');" ><img  src="fb.jpg" style="height: 20px" alt="fb post"></a></span><div id="'+collapseid+'" class="panel-collapse collapse"><div class="panel-body"><ul class="nav nav-tabs"><li class="active"><a data-toggle="tab" href="#'+sectionAid+'">Basic Info</a></li><li><a data-toggle="tab" href="#'+sectionBid+'">Seller Info</a></li><li><a data-toggle="tab" href="#'+sectionCid+'">Shipping Info</a></li></ul><div class="tab-content"><div id="'+sectionAid+'" class="tab-pane fade in active"><p><span> <b>Category name</b></span><span style="padding-left:70px">'+categoryName+'</span></p><p><span><b>Condition</b></span><span style="padding-left:105px">'+conditionDisplayName+'</span></p><p><span><b>Buying format</b></span><span style="padding-left:75px">'+listingType+'</span></p></div><div id="'+sectionBid+'" class="tab-pane fade"><p><span><b>User name</b></span><span style="padding-left:115px">'+sellerUserName+'</span></p><p><span><b>Feedback score</b></span><span style="padding-left:80px">'+feedbackScore+'</span></p><p><span><b>Positive feedback</b></span><span style="padding-left:66px">'+positiveFeedbackPercent+'%</span></p><p><span><b>Feedback rating </b></span><span style="padding-left:73px">'+feedbackRatingStar+'</span></p><p><span><b>Top rated </b></span><span style="padding-left:119px">'+topRatedSeller+'</span></p><p><span><b>Store</b></span><span style="padding-left:152px"><a href='+sellerStoreURL+'>'+sellerStoreName+'</a></span></p></div><div id="'+sectionCid+'" class="tab-pane fade"><p><span><b>Shiiping type</b></span><span style="padding-left:100px">'+shippingType+'</span></p><p><span><b>Handling time</b></span><span style="padding-left:98px">'+handlingTime+' day(s)</span></p><p><span><b>Shipping locations</b></span><span style="padding-left:64px">'+shipToLocations+'</span></p><p><span><b>Expedited shipping </b></span><span style="padding-left:58px">'+expeditedShipping+'</span></p><p><span><b>One day shipping </b></span><span style="padding-left:70px">'+oneDayShippingAvailable+'</span></p><p><span><b>Returns accepted</b></span><span style="padding-left:75px">'+returnsAccepted+'</span></p></div></div></div></div></div></div>';
+}	
+});
+div.html(html);
+$("#searchResult").html(div);
+var current_link=1;
+var loopLimit=5;
+if(parseInt(pageNumber) <= 5){
+if(resultCount < itemCount * 5){
+if(resultCount % itemCount == 0){
+loopLimit=parseInt(resultCount/itemCount);
+}
+else{
+loopLimit=parseInt(parseInt(resultCount/itemCount)+1);
+}
+}
+if(loopLimit<2){
+$("#paginationBlock").css('visibility', 'hidden');
+}
+if(pageNumber==1){
+navigation_html = '<li class="disabled"><a>«</a></li>';	
+}
+else{
+navigation_html = '<li class="prev"><a id ="pre" href="javascript:previous(' + pageNumber +');">«</a></li>';
+}
+for (i = current_link; i < current_link+loopLimit; i++){
+navigation_html += '<li id="' + i +'"><a  href="javascript:go_to_page(' + i +')" id="' + i +'">'+ (i) +'</a></li>';
+}
+navigation_html += '<li id="li_next" class="next"><a id ="next" href="javascript:next('+pageNumber+');">»</a></li>';
+$('#page_navigation').html(navigation_html);
+var id=parseInt(pageNumber);
+$('#'+id).addClass('active');
+}
+if(parseInt(pageNumber) % 5 == 1 && type=="next" && parseInt(pageNumber)  >1  ){
+current_link=pageNumber;
+if(leftItems < itemCount * 5){
+if(leftItems % itemCount == 0){
+loopLimit=parseInt(leftItems/itemCount);
+}
+else{
+loopLimit=parseInt(parseInt(leftItems/itemCount)+1);
+}
+}
+var navigation_html = '<li class="prev"><a id ="pre" href="javascript:previous(' + pageNumber +');">«</a></li>';
+for (i = current_link; i < current_link+loopLimit; i++){
+navigation_html += '<li id="' + i +'"><a  href="javascript:go_to_page(' + i +')" longdesc="' + i +'">'+ (i) +'</a></li>';
+}
+navigation_html += '<li id="li_next"><a id ="next" href="javascript:next(' + pageNumber +');">»</a></li>';
+$('#page_navigation').html(navigation_html);
+var id=parseInt(pageNumber);
+$('#'+id).addClass('active');
+}
+else if((parseInt(pageNumber) % 5 == 0 && type=="previous" && parseInt(pageNumber)  >1 )){
+current_link=parseInt(pageNumber)+1;
+var navigation_html = '<li class="prev"><a id ="pre" href="javascript:previous(' + pageNumber +');">«</a></li>';
+for (i = current_link-5; i < current_link; i++){
+navigation_html += '<li id="' + i +'"><a  href="javascript:go_to_page(' + i +')" longdesc="' + i +'">'+ (i) +'</a></li>';
+}
+navigation_html += '<li id="li_next"><a id ="next" href="javascript:next(' + pageNumber +');">»</a></li>';
+$('#page_navigation').html(navigation_html);
+var id=parseInt(pageNumber);
+$('#'+id).addClass('active');
+}
+if(leftItems <= itemCount){
+$('#li_next').addClass('disabled');
+}
+}
+};
+function fb_post(name,url,price,shipping,places,imageURL){
+var description="Price:$"+price+" "+shipping+", "+places;
+//alert(name); 
+FB.ui(
+{
+method: 'feed',
+name:name,
+caption:"Search Information from eBay.com",
+description:description,
+display:'popup',
+link:url,
+picture:imageURL,
+}, 
+function(response){
+if(response && response.post_id){
+alert("Posted Successfully");
+}else {
+alert("Not Posted");
+}
+}
+); 
+}
+window.fbAsyncInit = function() {
+FB.init({
+appId      : '1076175502443595',
+xfbml      : true,
+version    : 'v2.7'
+});
+};
+(function(d, s, id){
+var js, fjs = d.getElementsByTagName(s)[0];
+if (d.getElementById(id)) {return;}
+js = d.createElement(s); js.id = id;
+js.src = "//connect.facebook.net/en_US/sdk.js";
+fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));
+function previous(page_num){
+	new_page = parseInt(page_num) - 1;
+	go_to_page(new_page,"previous");
+}
+function next(page_num){
+	new_page = parseInt(page_num) + 1;
+	go_to_page(new_page,"next");
+}
+function go_to_page(page_num,type){
+var modPage= parseInt(parseInt(page_num)/5);
+if(parseInt(page_num)%5 == 0){
+modPage=parseInt(modPage)-1;
+}
+var initial= parseInt(modPage * 5) +1;
+var end = parseInt(modPage + 1) * 5;
+for (i = initial; i <= end; i++){
+$('#'+i).removeClass('active');
+}
+ajax_call(page_num,type);
+var id=parseInt(page_num);
+$('#'+id).addClass('active');
+$('#next').attr('href','javascript:next('+page_num+');');
+$('#pre').attr('href','javascript:previous('+page_num+');');
+}
+</script>
+</head>
+
+<body role="document">
+<div class="container">
+    <div class="row">
+        <div class="col-md-8 col-md-offset-2">
+<h3><img id="image" src="ebay.jpg" height="40" width="70"> Shopping</h3>
+    <form class="form-horizontal" role="form" id="searchform" onsubmit=" return false">
+        <div class="form-group">
+            <label for="keywords" class="control-label col-xs-3">Key words: <span style="color:#C80000;">*</span></label>
+            <div class="col-xs-8">
+                <input type="text" class="form-control" id="keywords" placeholder="Enter keyword">
+                <p id="errorkeyword" style="color:#C80000;text-shadow:none;visibility:hidden"></p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="pricerange" class="control-label col-xs-3">Price range:</label>
+            <div class="col-xs-4">
+					<input type="text" class="form-control" id="pricerangefrom" placeholder="from($)">
+					<p id="errorpricerangefrom" style="color:#C80000;text-shadow:none;visibility:hidden"></p>
+				</div>
+			<div class="col-xs-4">
+					<input type="text" class="form-control" id="pricerangeto" placeholder="to($)"> 
+					<p id="errorpricerangeto" style="color:#C80000;text-shadow:none;visibility:hidden"></p>
+				</div>
+            	
+        </div>
+        <div class="form-group">
+        	<label for="condition" class="control-label col-xs-3">Condition:</label>
+            <div class=" col-xs-8">
+                <div id="condition" class="checkbox">
+                    <label><input name="condition[]" value="1000" type="checkbox">New</label>
+                    <label><input name="condition[]" value="3000"  type="checkbox">Used</label>
+                    <label><input name="condition[]" value="4000"  type="checkbox">Very Good</label>
+                    <label><input name="condition[]" value="5000"  type="checkbox">Good</label>
+                    <label><input name="condition[]" value="6000" type="checkbox">Acceptable</label>
+                </div>
+            </div>
+        </div>
+        <div id="buyingformat" class="form-group">
+        	<label for="buyingformats" class="control-label col-xs-3">Buying Formats:</label>
+            <div class=" col-xs-8">
+                <div id="buyingformat" class="checkbox">
+                    <label><input name="buyingformat[]" value="FixedPrice" type="checkbox">Buy It Now</label>
+                    <label><input name="buyingformat[]" value="Auction"  type="checkbox">Auction</label>
+                    <label><input name="buyingformat[]" value="Classified"  type="checkbox">Classfied Ads</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+        	<label for="returnaccepted" class="control-label col-xs-3">Seller:</label>
+            <div class=" col-xs-8">
+                <div  class="checkbox">
+                    <label><input id="returnaccepted" name="returnaccepted" value="true" type="checkbox">Return accepted</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+        	<label for="shipping" class="control-label col-xs-3">Shipping:</label>
+            <div class=" col-xs-8">
+                <div class="checkbox">
+                    <label><input id="FreeShippingOnly" name="FreeShippingOnly" value="true" type="checkbox">Free Shipping</label>
+                    <label><input id="ExpeditedShippingType" name="ExpeditedShippingType" value="Expedited"  type="checkbox">Expedited shipping</label>
+                </div>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="MaxHandlingTime" class="control-label col-xs-3"> </label>
+            <div class="col-xs-8">
+                <input type="text" class="form-control" id="MaxHandlingTime" placeholder="Max handling time day(s)">
+                <p id="errormaxhandlingtime" style="color:#C80000;text-shadow:none;visibility:hidden"></p>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="keywords" class="control-label col-xs-3">Sort by:</label>
+            <div class="col-xs-8">
+               <select id="sortby" name="sortby" class="form-control" >
+                            <option value="BestMatch" >Best Match</option>
+                            <option value="CurrentPriceHighest" >Price: highest first</option>
+                            <option value="PricePlusShippingHighest" >Price + Shipping: highest first</option>
+                            <option value="PricePlusShippingLowest" >Price + Shipping: lowest first</option>
+                        </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="keywords" class="control-label col-xs-3">Result Per Page:</label>
+            <div class="col-xs-8">
+                <select id="resultperpage" name="resultperpage" class="form-control" >
+                            <option value="5" >5</option>
+                            <option value="10" >10</option>
+                            <option value="15" >15</option>
+                            <option value="20" >20</option>
+                        </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <div  class="col-xs-11">
+            	<button type="submit" id="search" class="btn btn-primary pull-right">Search</button>
+                <button type="submit" id="clear" class="btn btn-default pull-right" onclick="clear_form_elements(this.form)">Clear</button>
+            </div>
+        </div>
+    </form>
+    </div>
+    </div>
+</div>
+<div id="searchDiv" class="col-md-8 col-md-offset-2">
+<h3 id="searchHeading"></h3>
+<div id="searchResult" class="media">
+
+</div>
+<div id="paginationBlock" style="visibility: hidden;">
+<div class="container">
+  <ul id="page_navigation" class="pagination">
+    
+  </ul>
+</div>
+<input type='hidden' id='current_page' />
+<input type='hidden' id='show_per_page' />
+<input type='hidden' id='total_values' />
+</body>
+</html>  
